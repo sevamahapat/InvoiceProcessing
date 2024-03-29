@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'frontend',
-    'storages',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -118,9 +119,4 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Azure Storage configurations
-AZURE_ACCOUNT_NAME = 'invoiceprocessin'
-AZURE_ACCOUNT_KEY = '2OwjLg/MsQinwCw471KDoemGRdSHXciTPlNkki5hvM1wBZglLJzh1NbsBnZIN7VTYF/uKor5osz9+AStvCJ9bA=='
-AZURE_CONTAINER = 'invoicetest'
-
-DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploaded_files')

@@ -3,44 +3,37 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
     <title>Accounts Payable Invoice Processing</title>
-    <style>
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .box { border: 1px solid black; padding: 10px; margin-bottom: 20px; }
-        .flex { display: flex; justify-content: space-between; }
-        .flex > div { width: 48%; }
-        .table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .table, .table th, .table td { border: 1px solid black; }
-        .table th, .table td { padding: 5px; text-align: left; }
-        .button { padding: 10px; background-color: #f2f2f2; border: 1px solid #dcdcdc; cursor: pointer; text-align: center; }
-    </style>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'frontend/upload_ui.css' %}">
+    <script src="{% static 'frontend/file_handling.js' %}" type="text/javascript"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-          <h1>Accounts Payable Invoice Processing</h1>
-          <a href="/login">Login</a>
+<div class="container">
+    <div class="header">
+        <h1>Accounts Payable Invoice Processing</h1>
+        <a href="/login">Login</a>
+    </div>
+    <div class="flex">
+        <div class="box">
+            <h2>Recent Activities</h2>
+            <p>Number of invoices processed: 100</p>
+            <p>Pending tasks: 5</p>
+            <p>Notifications: 2</p>
         </div>
-        <div class="flex">
-            <div class="box">
-              <h2>Recent Activities</h2>
-              <p>Number of invoices processed: 100</p>
-              <p>Pending tasks: 5</p>
-              <p>Notifications: 2</p>
-            </div>
-            <div class="box">
-              <h2>Invoice Management</h2>
-              <form method="post" enctype="multipart/form-data">
-                <label for="file-upload">Upload Invoice</label><br>
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" value="Upload">Upload</button>
-              </form>
-            </div>
-        </div>
-        <div class="button">
-            <button onclick="window.location.href='{{ download_url }}'">Download Excel File</button>
+        <div class="box">
+            <h2>Invoice Management</h2>
+            <form id="uploadForm">
+                <label for="file-upload">Upload Invoice (PDF only):</label><br>
+                <input type="file" id="file-upload" name="file" accept="application/pdf" required>
+                <button type="button" onclick="uploadFile()">Upload</button>
+            </form>
         </div>
     </div>
+    <div id="downloadButton" class="button">
+        <button onclick="downloadFile()">Download Excel File</button>
+    </div>
+</div>
+
 </body>
 </html>
