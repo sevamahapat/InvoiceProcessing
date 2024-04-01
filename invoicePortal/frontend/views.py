@@ -9,7 +9,6 @@ from django.http import HttpResponse
 from .utils.invoice_generate import generate_invoice_info_gpt
 import uuid
 
-
 def invoice_upload_view(request):
     form = InvoiceForm()
     return render(request, 'invoice_upload.html', {'form': form})
@@ -37,7 +36,8 @@ def upload_file(request):
 
     # Start the background task (asynchronously)
     # process_file.delay(file_name, task_id)
-    generate_invoice_info_gpt(file_path)
+    # generate_invoice_info_gpt.delay(task_id)
+    generate_invoice_info_gpt(task_id)
 
     # Return the task ID to the client
     return Response({'task_id': task_id})
@@ -45,7 +45,7 @@ def upload_file(request):
 
 @api_view(['GET'])
 def download_file(request, task_id):
-    file_name = "result.pdf"
+    file_name = "result.xlsx"
     # file_name = f"{task_id}_processed.xlsx"
     file_path = Path(settings.MEDIA_ROOT) / file_name
 

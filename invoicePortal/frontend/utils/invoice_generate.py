@@ -1,7 +1,7 @@
 '''
 @Author: Yao Xie
 '''
-
+from celery import shared_task
 from google.oauth2.service_account import Credentials
 import numpy as np
 import pandas as pd
@@ -10,17 +10,21 @@ from django.conf import settings
 from rest_framework.response import Response
 import os
 import json
-import prompt_engineering_blackbox as prompt
-from background_task import background
+from . import prompt_engineering_blackbox as prompt
+
 import openpyxl
 
-@background(schedule=0)
-def generate_invoice_info_gpt(file_path):
+# @shared_task
+def generate_invoice_info_gpt(task_id):
     """
     This function generates the invoice information using GPT API
     Generates the parsed invoice information from passing the .pdf files to GPT API 
     """
     error_message = None
+    file_name = f"{task_id}.pdf"  # Save the file with the task ID
+    # Construct the file path
+    file_path = Path(settings.MEDIA_ROOT) / file_name
+
     # check if the file exists
     if not os.path.exists(file_path):
         error_message = 'File ' + file_path + ' not found'
