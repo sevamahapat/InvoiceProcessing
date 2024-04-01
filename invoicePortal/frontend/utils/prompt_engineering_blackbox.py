@@ -137,14 +137,11 @@ def call_gpt_api(prompt):
 
 def call(target_invoice_text_path):
     # path to the folder containing PDF files used as ground truth for creating the prompts
-    pdf_path = './invoices_example'
     # target_invoice_text_path = 'target_invoice.pdf'
     # Get the directory of the current Python file (utils directory)
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    print("Current directory:", current_dir)
     # Construct the path to the invoices_example folder
     pdf_path = os.path.join(current_dir, 'invoices_example')
-    print("PDF path:", pdf_path)
     # getting all the pdf files from the folder
     file_paths = []
 
