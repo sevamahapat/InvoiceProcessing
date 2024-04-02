@@ -1,11 +1,11 @@
-Reference,Invoice number,Supplier Name,Supplier Address Street 1,Supplier Address Street 2,Supplier City,Supplier State,Supplier zip,Supplier Country,Unisys Ship To Street 1,Unisys Ship To Street 2,Unisys Ship To City,Unisys Ship To State,Zip,Unisys Ship To Country,Invoice currency, Invoice amount (Incl tax) , Invoice tax amount ,Purchase Order
-1,5564,ABC Inc,2880 E Camp Rd,Suite 260,Huston,TX,,USA,,,,,,,USD," 6,400.00 ", -   ,P40344OUS
-2,100426,TRANSAMERICA,,,,,,,801 Lakeview Drive,Suite 100,Blue Bell,PA,19422,,USD, 3.00 , -   ,P401213US
-3,114901,CEILING,,,,,,,1650 Jumper Hill Road,,ALPHA,WY,90005,,USD," 1,13,939.00 ",,P403324US
-4,119847,Sample Engineering,,,,,,,3199 Pilot Knob Road,MS F1B05,Eagan,MN,55121-1362,,," 20,342.50 ",,376797 and 374127
-5,3104576,Money Serices Canada Limited,123 WeSaw Baker Rd,Suite 1,South  Town,ON,M2H 3N5,Canada,CIBC Building Suite 600,1809 Barrington St,Halifax,NS,B3J 3K8,,CAD," 1,129.29 ", 147.35 ,30256
-6,20240101-2300,Fake,PO Box 12345,,Juno,AK,99519-6606,,,,,,,,," 1,074.38 ",,P401453US
-7,100532467,Sample,5 Sample Parkway,,Red Shores,CA,913587,USA,3199 Pilot Knob Road,,Eagan,MN,55121,United States,," 1,070.93 ", -   ,383274
-8,IN1552686,Technology Corp,1193 Sunset Hills Road,Suite 123,Charles Town,WV,25414,USA,Data Center - Unisys,6000 Technoplogy Blvd,Miami,FL,33109,USA,USD," 6,43,745.92 ",,P3403357US
-9,IN1582390,GeoTechnology Corp,1234 Sunset Road,Suite 1,Sunnyville,VA,20190,USA,801 Lakeview Dr,Suite 100,Blue Bell,PA,19422,,USD, 288.74 , 16.34 ,P404125US-NFR
-10,INV6060086,Sample Corporation,1234 Reggie Blvd.,,Dallas,TX,75063,,,,,,,,, 541.00 ,,375843
+Invoice number,Supplier Name,Supplier Address Street 1,Supplier Address Street 2,Supplier City,Supplier State,Supplier zip,Supplier Country,Unisys Ship To Street 1,Unisys Ship To Street 2,Unisys Ship To City,Unisys Ship To State,Zip,Unisys Ship To Country,Invoice currency, Invoice amount (Incl tax) , Invoice tax amount ,Purchase Order
+5564,ABC Inc,2880 E Camp Rd,Suite 260,Huston,TX,,USA,,,,,,,USD,"6,400.00", -   ,P40344OUS
+100426,TRANSAMERICA,,,,,,,801 Lakeview Drive,Suite 100,Blue Bell,PA,19422,,USD,3, -   ,P401213US
+114901,CEILING,,,,,,,1650 Jumper Hill Road,,ALPHA,WY,90005,,USD," 1,13,939.00 ",,P403324US
+119847,Sample Engineering,,,,,,,3199 Pilot Knob Road,MS F1B05,Eagan,MN,55121-1362,,,"20,342.50",,376797 and 374127
+3104576,Money Serices Canada Limited,123 WeSaw Baker Rd,Suite 1,South  Town,ON,M2H 3N5,Canada,CIBC Building Suite 600,1809 Barrington St,Halifax,NS,B3J 3K8,,CAD,"1,129.29",147.35,30256
+20240101-2300,Fake,PO Box 12345,,Juno,AK,99519-6606,,,,,,,,,"1,074.38",,P401453US
+100532467,Sample,5 Sample Parkway,,Red Shores,CA,913587,USA,3199 Pilot Knob Road,,Eagan,MN,55121,United States,,"1,070.93", -   ,383274
+IN1552686,Technology Corp,1193 Sunset Hills Road,Suite 123,Charles Town,WV,25414,USA,Data Center - Unisys,6000 Technoplogy Blvd,Miami,FL,33109,USA,USD," 6,43,745.92 ",,P3403357US
+IN1582390,GeoTechnology Corp,1234 Sunset Road,Suite 1,Sunnyville,VA,20190,USA,801 Lakeview Dr,Suite 100,Blue Bell,PA,19422,,USD,288.74,16.34,P404125US-NFR
+INV6060086,Sample Corporation,1234 Reggie Blvd.,,Dallas,TX,75063,,,,,,,,,541,,375843
