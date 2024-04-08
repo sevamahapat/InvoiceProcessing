@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-b5!)yhy%qa2m4oj1k+4vy3_$=*$+s3z(5&acvolj(h%^*$mvz*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["accounts-payable.university-connect.unisys-innovation.com","cmu-accountspayable.azurewebsites.net","127.0.0.1"]
 
 # Application definition
 
