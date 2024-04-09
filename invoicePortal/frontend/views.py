@@ -16,31 +16,42 @@ def invoice_upload_view(request):
 
 @api_view(['POST'])
 def upload_file(request):
-    if 'file' not in request.FILES:
-        return Response({'error': 'No file provided'}, status=400)
+    files = request.FILES.getlist('files')  # Get the list of files
+    if not files:
+        print(request)
+        print("No files provided")
+        return Response({'error': 'No files provided'}, status=400)
 
-    file = request.FILES['file']
-    task_id = str(uuid.uuid4())  # Generate a unique task ID
-    file_name = f"{task_id}.pdf"  # Save the file with the task ID
+    task_ids = []  # Store generated task IDs for each file
 
-    # Construct the file path
-    file_path = Path(settings.MEDIA_ROOT) / file_name
+    task_counter = 0
 
-    # Ensure the directory exists
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    for file in files:
+        task_id = str(uuid.uuid4())  # Generate a unique task ID for each file
+        task_ids.append(task_id)
+        file_name = f"{task_id}.pdf"  # Save the file with the task ID
 
-    # Save the file to the local folder
-    with open(file_path, 'wb') as f:
-        for chunk in file.chunks():
-            f.write(chunk)
+        # Construct the file path
+        file_path = Path(settings.MEDIA_ROOT) / file_name
 
-    # Start the background task (asynchronously)
-    # process_file.delay(file_name, task_id)
-    # generate_invoice_info_gpt.delay(task_id)
-    generate_invoice_info_gpt(task_id)
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-    # Return the task ID to the client
-    return Response({'task_id': task_id})
+        # Save the file to the local folder
+        with open(file_path, 'wb') as f:
+            for chunk in file.chunks():
+                f.write(chunk)
+
+        # Here, you might want to process each file asynchronously
+        # For example: process_file.delay(file_name, task_id)
+        # Or if processing synchronously, just call the function
+        # Example: generate_invoice_info_gpt(task_id)
+        task_counter += 1
+        print(f"Processing task_id {task_id}, progress: {task_counter}/{len(files)}")
+        generate_invoice_info_gpt(task_id)
+
+    # Return the task IDs to the client
+    return Response({'task_ids': task_ids})
 
 
 @api_view(['GET'])
