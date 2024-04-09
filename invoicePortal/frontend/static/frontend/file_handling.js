@@ -1,6 +1,6 @@
 function uploadFile() {
     const fileInput = document.getElementById('file-upload');
-    if (fileInput.files.length === 0) {
+    if (fileInput.files && fileInput.files.length === 0) {
         alert('Please select one or more PDF files to upload.');
         return;
     }
@@ -26,7 +26,7 @@ function uploadFile() {
         })
         .then(data => {
             console.log('Success:', data);
-            if (data.task_ids.length === 0) {
+            if (data.task_ids && data.task_ids.length === 0) {
                 alert('No files uploaded.');
                 return;
             } else {

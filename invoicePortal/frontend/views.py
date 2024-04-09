@@ -54,20 +54,24 @@ def upload_file(request):
         task_counter += 1
         print(f"Processing task_id {task_id}, progress: {task_counter}/{len(files)}")
         result_data = generate_invoice_info_gpt(task_id)
+        print(result_data['Invoice amount (Incl tax)'])
         invoice_amount_incl_tax = result_data['Invoice amount (Incl tax)'].iloc[0]
         if invoice_amount_incl_tax == 'N/A' or invoice_amount_incl_tax == '':
             invoice_amount_incl_tax = 0
         else :
             match = re.findall(r'\d+\.\d+|\d+', invoice_amount_incl_tax)
+            print(match)
             invoice_amount_incl_tax = ""
             for i in range(len(match)):
                 invoice_amount_incl_tax += match[i]
 
+        print(result_data['Invoice tax amount'])
         invoice_tax_amount = result_data['Invoice tax amount'].iloc[0]
         if invoice_tax_amount == 'N/A' or invoice_tax_amount == '':
             invoice_tax_amount = 0
         else :
             match = re.findall(r'\d+\.\d+|\d+', invoice_tax_amount)
+            print(match)
             invoice_tax_amount = ""
             for i in range(len(match)):
                 invoice_tax_amount += match[i]
@@ -95,6 +99,7 @@ def upload_file(request):
             purchase_order = result_data['Purchase Order'].iloc[0],
         )
         new_invoice.save()
+        #print the new invoice
 
 
     # Return the task ID to the client
