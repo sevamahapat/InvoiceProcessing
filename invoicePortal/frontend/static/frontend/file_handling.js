@@ -1,12 +1,20 @@
 function uploadFile() {
     const fileInput = document.getElementById('file-upload');
-    if (fileInput.files.length === 0 || fileInput.files[0].type !== 'application/pdf') {
-        alert('Please select a PDF file to upload.');
+    if (fileInput.files.length === 0) {
+        alert('Please select one or more PDF files to upload.');
         return;
     }
 
     const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
+    // Append each file to the FormData object
+    Array.from(fileInput.files).forEach((file, index) => {
+        if (file.type !== 'application/pdf') {
+            alert('Only PDF files are allowed.');
+            return;
+        }
+        formData.append('files', file);
+        console.log(`File ${index + 1}: ${file.name}`);
+    });
 
     fetch('/api/upload/', {
         method: 'POST',
@@ -18,12 +26,14 @@ function uploadFile() {
         })
         .then(data => {
             console.log('Success:', data);
-            if (data.task_id) {
-                // Update the download link with the task ID
+            if (data.task_ids.length === 0) {
+                alert('No files uploaded.');
+                return;
+            } else {
                 const downloadButton = document.getElementById('downloadButton');
                 downloadButton.style.display = 'block'; // Show the download button
-                downloadButton.onclick = () => { downloadFile(data.task_id); };
-                alert('File uploaded successfully. Task ID: ' + data.task_id);
+                downloadButton.onclick = () => { downloadFile(data.task_ids); };
+                alert('File uploaded successfully. Task ID: ' + data.task_ids);
             }
         })
         .catch((error) => {

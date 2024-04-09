@@ -21,70 +21,82 @@ def invoice_upload_view(request):
 
 @api_view(['POST'])
 def upload_file(request):
-    print("uploading file......")
-    if 'file' not in request.FILES:
-        return Response({'error': 'No file provided'}, status=400)
+    files = request.FILES.getlist('files')  # Get the list of files
+    if not files:
+        print(request)
+        print("No files provided")
+        return Response({'error': 'No files provided'}, status=400)
 
-    file = request.FILES['file']
-    task_id = str(uuid.uuid4())  # Generate a unique task ID
-    file_name = f"{task_id}.pdf"  # Save the file with the task ID
+    task_ids = []  # Store generated task IDs for each file
 
-    # Construct the file path
-    file_path = Path(settings.MEDIA_ROOT) / file_name
+    task_counter = 0
 
-    # Ensure the directory exists
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    for file in files:
+        task_id = str(uuid.uuid4())  # Generate a unique task ID for each file
+        task_ids.append(task_id)
+        file_name = f"{task_id}.pdf"  # Save the file with the task ID
 
-    # Save the file to the local folder
-    with open(file_path, 'wb') as f:
-        for chunk in file.chunks():
-            f.write(chunk)
+        # Construct the file path
+        file_path = Path(settings.MEDIA_ROOT) / file_name
 
-    # Start the background task (asynchronously)
-    # process_file.delay(file_name, task_id)
-    # generate_invoice_info_gpt.delay(task_id)
-    result_data = generate_invoice_info_gpt(task_id)
-    invoice_amount_incl_tax = result_data['Invoice amount (Incl tax)'].iloc[0]
-    if invoice_amount_incl_tax == 'N/A' or invoice_amount_incl_tax == '':
-        invoice_amount_incl_tax = 0
-    else :
-        match = re.findall(r'\d+\.\d+|\d+', invoice_amount_incl_tax)
-        invoice_amount_incl_tax = ""
-        for i in range(len(match)):
-            invoice_amount_incl_tax += match[i]
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-    invoice_tax_amount = result_data['Invoice tax amount'].iloc[0]
-    if invoice_tax_amount == 'N/A' or invoice_tax_amount == '':
-        invoice_tax_amount = 0
-    else :
-        match = re.findall(r'\d+\.\d+|\d+', invoice_tax_amount)
-        invoice_tax_amount = ""
-        for i in range(len(match)):
-            invoice_tax_amount += match[i]
+        # Save the file to the local folder
+        with open(file_path, 'wb') as f:
+            for chunk in file.chunks():
+                f.write(chunk)
 
-    # convert amount part to decimal
-    new_invoice = Invoice(
-        invoice_number = result_data['Invoice number'].iloc[0],
-        supplier_name = result_data['Supplier Name'].iloc[0],
-        supplier_address_street1 = result_data['Supplier Address Street 1'].iloc[0],
-        supplier_address_street2 = result_data['Supplier Address Street 2'].iloc[0],
-        supplier_city = result_data['Supplier City'].iloc[0],
-        supplier_state = result_data['Supplier State'].iloc[0],
-        supplier_zip = result_data['Supplier zip'].iloc[0],
-        supplier_country = result_data['Supplier Country'].iloc[0],
-        ship_to_street1 = result_data['Ship To Street 1'].iloc[0],
-        ship_to_street2 = result_data['Ship To Street 2'].iloc[0],
-        ship_to_city = result_data['Ship To City'].iloc[0],
-        ship_to_state = result_data['Ship To State'].iloc[0],
-        ship_to_zip = result_data['Zip'].iloc[0],
-        ship_to_country = result_data['Ship To Country'].iloc[0],
-        invoice_currency = result_data['Invoice currency'].iloc[0],
-    
-        invoice_amount_incl_tax = invoice_amount_incl_tax,
-        invoice_tax_amount = invoice_tax_amount,
-        purchase_order = result_data['Purchase Order'].iloc[0],
-    )
-    new_invoice.save()
+        # Here, you might want to process each file asynchronously
+        # For example: process_file.delay(file_name, task_id)
+        # Or if processing synchronously, just call the function
+        # Example: generate_invoice_info_gpt(task_id)
+        task_counter += 1
+        print(f"Processing task_id {task_id}, progress: {task_counter}/{len(files)}")
+        result_data = generate_invoice_info_gpt(task_id)
+        invoice_amount_incl_tax = result_data['Invoice amount (Incl tax)'].iloc[0]
+        if invoice_amount_incl_tax == 'N/A' or invoice_amount_incl_tax == '':
+            invoice_amount_incl_tax = 0
+        else :
+            match = re.findall(r'\d+\.\d+|\d+', invoice_amount_incl_tax)
+            invoice_amount_incl_tax = ""
+            for i in range(len(match)):
+                invoice_amount_incl_tax += match[i]
+
+        invoice_tax_amount = result_data['Invoice tax amount'].iloc[0]
+        if invoice_tax_amount == 'N/A' or invoice_tax_amount == '':
+            invoice_tax_amount = 0
+        else :
+            match = re.findall(r'\d+\.\d+|\d+', invoice_tax_amount)
+            invoice_tax_amount = ""
+            for i in range(len(match)):
+                invoice_tax_amount += match[i]
+
+        # convert amount part to decimal
+        new_invoice = Invoice(
+            invoice_number = result_data['Invoice number'].iloc[0],
+            supplier_name = result_data['Supplier Name'].iloc[0],
+            supplier_address_street1 = result_data['Supplier Address Street 1'].iloc[0],
+            supplier_address_street2 = result_data['Supplier Address Street 2'].iloc[0],
+            supplier_city = result_data['Supplier City'].iloc[0],
+            supplier_state = result_data['Supplier State'].iloc[0],
+            supplier_zip = result_data['Supplier zip'].iloc[0],
+            supplier_country = result_data['Supplier Country'].iloc[0],
+            ship_to_street1 = result_data['Ship To Street 1'].iloc[0],
+            ship_to_street2 = result_data['Ship To Street 2'].iloc[0],
+            ship_to_city = result_data['Ship To City'].iloc[0],
+            ship_to_state = result_data['Ship To State'].iloc[0],
+            ship_to_zip = result_data['Zip'].iloc[0],
+            ship_to_country = result_data['Ship To Country'].iloc[0],
+            invoice_currency = result_data['Invoice currency'].iloc[0],
+        
+            invoice_amount_incl_tax = invoice_amount_incl_tax,
+            invoice_tax_amount = invoice_tax_amount,
+            purchase_order = result_data['Purchase Order'].iloc[0],
+        )
+        new_invoice.save()
+
+
     # Return the task ID to the client
     return Response({'task_id': task_id})
 

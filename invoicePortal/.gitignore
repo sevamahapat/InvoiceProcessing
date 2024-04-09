@@ -1,3 +1,4 @@
 uploaded_files
 *.pyc
 .azure
+db.sqlite3
