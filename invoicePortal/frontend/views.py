@@ -103,7 +103,7 @@ def upload_file(request):
 
 
     # Return the task ID to the client
-    return Response({'task_id': task_id})
+    return Response({'task_ids': task_ids})
 
 
 @api_view(['GET'])
