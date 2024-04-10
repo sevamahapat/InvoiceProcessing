@@ -15,7 +15,7 @@ from . import prompt_engineering_blackbox as prompt
 import openpyxl
 
 # @shared_task
-def generate_invoice_info_gpt(task_id):
+def generate_invoice_info_gpt(task_id, upload_id):
     """
     This function generates the invoice information using GPT API
     Generates the parsed invoice information from passing the .pdf files to GPT API 
@@ -92,7 +92,7 @@ def generate_invoice_info_gpt(task_id):
     # return result_df
 
     # check if the output file 'result.xlsx' exists
-    file_path = Path(settings.MEDIA_ROOT) / 'result.xlsx'
+    file_path = Path(settings.MEDIA_ROOT) / f"result_{upload_id}.xlsx"
     if not os.path.exists(file_path):
         # Create a new Excel file
         result_df.to_excel(file_path, index=False)

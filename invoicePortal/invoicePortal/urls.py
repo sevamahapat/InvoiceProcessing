@@ -22,5 +22,5 @@ urlpatterns = [
     path('', invoice_upload_view, name='invoice_upload'),
     path('admin/', admin.site.urls),
     path('api/upload/', upload_file, name='upload_file'),
-    path('api/download/<str:task_id>/', download_file, name='download_file'),
+    path('api/download/<str:upload_id>/', download_file, name='download_file'),
 ]

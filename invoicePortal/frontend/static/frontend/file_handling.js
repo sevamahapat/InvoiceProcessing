@@ -36,8 +36,8 @@ function uploadFile() {
             } else {
                 const downloadButton = document.getElementById('downloadButton');
                 downloadButton.style.display = 'block'; // Show the download button
-                downloadButton.onclick = () => { downloadFile(data.task_ids); };
-                alert('File uploaded successfully. Task ID: ' + data.task_ids);
+                downloadButton.onclick = () => { downloadFile(data.upload_id); };
+                alert('File processed successfully.');
                 loadingIndicator.style.display = 'none';
             }
         })
@@ -48,7 +48,7 @@ function uploadFile() {
         });
 }
 
-function downloadFile(taskId) {
-    window.location.href = `/api/download/${taskId}`;
+function downloadFile(upload_id) {
+    window.location.href = `/api/download/${upload_id}`;
     // Adjust the URL to include the task ID returned by the upload API.
 }

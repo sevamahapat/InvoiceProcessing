@@ -31,6 +31,7 @@ def upload_file(request):
     task_ids = []  # Store generated task IDs for each file
 
     task_counter = 0
+    upload_id = str(uuid.uuid4())  # Generate a unique upload ID
 
     for file in files:
         task_id = str(uuid.uuid4())  # Generate a unique task ID for each file
@@ -54,7 +55,7 @@ def upload_file(request):
         # Example: generate_invoice_info_gpt(task_id)
         task_counter += 1
         print(f"Processing task_id {task_id}, progress: {task_counter}/{len(files)}")
-        generate_invoice_info_gpt(task_id)
+        generate_invoice_info_gpt(task_id, upload_id)
         # result_data = generate_invoice_info_gpt(task_id)
         # print(result_data['Invoice amount (Incl tax)'])
         # invoice_amount_incl_tax = result_data['Invoice amount (Incl tax)'].iloc[0]
@@ -104,36 +105,36 @@ def upload_file(request):
         #print the new invoice
 
     # Return the task ID to the client
-    return Response({'task_ids': task_ids})
+    return Response({'upload_id': upload_id})
 
 
 @api_view(['GET'])
-def download_file(request, task_id):
-    # file_name = "result.xlsx"
-    # # file_name = f"{task_id}_processed.xlsx"
-    # file_path = Path(settings.MEDIA_ROOT) / file_name
+def download_file(request, upload_id):
+    file_name = f"result_{upload_id}.xlsx"
+    # file_name = f"{task_id}_processed.xlsx"
+    file_path = Path(settings.MEDIA_ROOT) / file_name
 
-    # if not os.path.exists(file_path):
-    #     return Response({'error': 'File not found or not ready'}, status=404)
+    if not os.path.exists(file_path):
+        return Response({'error': 'File not found or not ready'}, status=404)
 
-    # with open(file_path, 'rb') as fh:
-    #     response = HttpResponse(fh.read(), content_type="application/pdf")
-    #     response['Content-Disposition'] = f'attachment; filename="{file_name}"'
-    #     return response
+    with open(file_path, 'rb') as fh:
+        response = HttpResponse(fh.read(), content_type="application/pdf")
+        response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+        return response
 
-    # get all rows from the Invoice table and return them as xlsx file
-    invoices = Invoice.objects.all()
-    df = pd.DataFrame(list(invoices.values()))
+    # # get all rows from the Invoice table and return them as xlsx file
+    # invoices = Invoice.objects.all()
+    # df = pd.DataFrame(list(invoices.values()))
 
-    # Create a BytesIO object to store the Excel file
-    from io import BytesIO
-    excel_file = BytesIO()
+    # # Create a BytesIO object to store the Excel file
+    # from io import BytesIO
+    # excel_file = BytesIO()
 
-    # Write the DataFrame to the BytesIO object as an Excel file
-    df.to_excel(excel_file, index=False)
+    # # Write the DataFrame to the BytesIO object as an Excel file
+    # df.to_excel(excel_file, index=False)
 
-    # Create the HttpResponse object with the Excel file
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename="invoices.xlsx"'
-    response.write(excel_file.getvalue())
-    return response
+    # # Create the HttpResponse object with the Excel file
+    # response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    # response['Content-Disposition'] = 'attachment; filename="invoices.xlsx"'
+    # response.write(excel_file.getvalue())
+    # return response
