@@ -35,6 +35,11 @@
                 <input type="file" id="file-upload" name="files" accept="application/pdf" multiple required>
                 <button type="button" onclick="uploadFile()">Upload</button>
             </form>
+            <div id="loadingIndicator" style="display: none; margin-top: 10px">
+                {% load static %}
+                <img src="{% static "frontend/loading.gif" %}" alt="Loading..." style="vertical-align: middle; margin-right: 5px; width: 20px; height: 20px">
+                Processing Invoices...
+            </div>
         </div>
       </div>
       <div id="downloadButton" class="button">

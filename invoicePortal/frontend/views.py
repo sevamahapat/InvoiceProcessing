@@ -14,6 +14,7 @@ import uuid
 import pandas as pd
 from .models import Invoice
 
+
 def invoice_upload_view(request):
     form = InvoiceForm()
     return render(request, 'invoice_upload.html', {'form': form})
@@ -58,7 +59,7 @@ def upload_file(request):
         invoice_amount_incl_tax = result_data['Invoice amount (Incl tax)'].iloc[0]
         if invoice_amount_incl_tax == 'N/A' or invoice_amount_incl_tax == '':
             invoice_amount_incl_tax = 0
-        else :
+        else:
             match = re.findall(r'\d+\.\d+|\d+', invoice_amount_incl_tax)
             print(match)
             invoice_amount_incl_tax = ""
@@ -69,7 +70,7 @@ def upload_file(request):
         invoice_tax_amount = result_data['Invoice tax amount'].iloc[0]
         if invoice_tax_amount == 'N/A' or invoice_tax_amount == '':
             invoice_tax_amount = 0
-        else :
+        else:
             match = re.findall(r'\d+\.\d+|\d+', invoice_tax_amount)
             print(match)
             invoice_tax_amount = ""
@@ -78,29 +79,28 @@ def upload_file(request):
 
         # convert amount part to decimal
         new_invoice = Invoice(
-            invoice_number = result_data['Invoice number'].iloc[0],
-            supplier_name = result_data['Supplier Name'].iloc[0],
-            supplier_address_street1 = result_data['Supplier Address Street 1'].iloc[0],
-            supplier_address_street2 = result_data['Supplier Address Street 2'].iloc[0],
-            supplier_city = result_data['Supplier City'].iloc[0],
-            supplier_state = result_data['Supplier State'].iloc[0],
-            supplier_zip = result_data['Supplier zip'].iloc[0],
-            supplier_country = result_data['Supplier Country'].iloc[0],
-            ship_to_street1 = result_data['Ship To Street 1'].iloc[0],
-            ship_to_street2 = result_data['Ship To Street 2'].iloc[0],
-            ship_to_city = result_data['Ship To City'].iloc[0],
-            ship_to_state = result_data['Ship To State'].iloc[0],
-            ship_to_zip = result_data['Zip'].iloc[0],
-            ship_to_country = result_data['Ship To Country'].iloc[0],
-            invoice_currency = result_data['Invoice currency'].iloc[0],
-        
-            invoice_amount_incl_tax = invoice_amount_incl_tax,
-            invoice_tax_amount = invoice_tax_amount,
-            purchase_order = result_data['Purchase Order'].iloc[0],
+            invoice_number=result_data['Invoice number'].iloc[0],
+            supplier_name=result_data['Supplier Name'].iloc[0],
+            supplier_address_street1=result_data['Supplier Address Street 1'].iloc[0],
+            supplier_address_street2=result_data['Supplier Address Street 2'].iloc[0],
+            supplier_city=result_data['Supplier City'].iloc[0],
+            supplier_state=result_data['Supplier State'].iloc[0],
+            supplier_zip=result_data['Supplier zip'].iloc[0],
+            supplier_country=result_data['Supplier Country'].iloc[0],
+            ship_to_street1=result_data['Ship To Street 1'].iloc[0],
+            ship_to_street2=result_data['Ship To Street 2'].iloc[0],
+            ship_to_city=result_data['Ship To City'].iloc[0],
+            ship_to_state=result_data['Ship To State'].iloc[0],
+            ship_to_zip=result_data['Zip'].iloc[0],
+            ship_to_country=result_data['Ship To Country'].iloc[0],
+            invoice_currency=result_data['Invoice currency'].iloc[0],
+
+            invoice_amount_incl_tax=invoice_amount_incl_tax,
+            invoice_tax_amount=invoice_tax_amount,
+            purchase_order=result_data['Purchase Order'].iloc[0],
         )
         new_invoice.save()
         #print the new invoice
-
 
     # Return the task ID to the client
     return Response({'task_ids': task_ids})
