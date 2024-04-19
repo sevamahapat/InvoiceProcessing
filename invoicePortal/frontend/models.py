@@ -25,3 +25,16 @@ class Invoice(models.Model):
     
     class Meta:
         app_label = 'frontend'
+
+
+class UploadProgress(models.Model):
+    upload_id = models.CharField(max_length=36, unique=True)
+    total_files = models.IntegerField(default=0)
+    processed_files = models.IntegerField(default=0)
+    completed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.upload_id
+
+    class Meta:
+        app_label = 'frontend'

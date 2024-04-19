@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from .utils.invoice_generate import generate_invoice_info_gpt
 import uuid
 import pandas as pd
-from .models import Invoice
+from .models import Invoice, UploadProgress
 
 
 def invoice_upload_view(request):
@@ -30,10 +30,15 @@ def upload_file(request):
 
     task_ids = []  # Store generated task IDs for each file
 
-    task_counter = 0
     upload_id = str(uuid.uuid4())  # Generate a unique upload ID
 
-    for file in files:
+    # Create an instance of UploadProgress
+    upload_progress = UploadProgress.objects.create(
+        upload_id=upload_id,
+        total_files=len(files)
+    )
+
+    for index, file in enumerate(files):
         task_id = str(uuid.uuid4())  # Generate a unique task ID for each file
         task_ids.append(task_id)
         file_name = f"{task_id}.pdf"  # Save the file with the task ID
@@ -49,62 +54,17 @@ def upload_file(request):
             for chunk in file.chunks():
                 f.write(chunk)
 
-        # Here, you might want to process each file asynchronously
-        # For example: process_file.delay(file_name, task_id)
-        # Or if processing synchronously, just call the function
-        # Example: generate_invoice_info_gpt(task_id)
-        task_counter += 1
-        print(f"Processing task_id {task_id}, progress: {task_counter}/{len(files)}")
         generate_invoice_info_gpt(task_id, upload_id)
-        # result_data = generate_invoice_info_gpt(task_id)
-        # print(result_data['Invoice amount (Incl tax)'])
-        # invoice_amount_incl_tax = result_data['Invoice amount (Incl tax)'].iloc[0]
-        # if invoice_amount_incl_tax == 'N/A' or invoice_amount_incl_tax == '':
-        #     invoice_amount_incl_tax = 0
-        # else:
-        #     match = re.findall(r'\d+\.\d+|\d+', invoice_amount_incl_tax)
-        #     print(match)
-        #     invoice_amount_incl_tax = ""
-        #     for i in range(len(match)):
-        #         invoice_amount_incl_tax += match[i]
 
-        # print(result_data['Invoice tax amount'])
-        # invoice_tax_amount = result_data['Invoice tax amount'].iloc[0]
-        # if invoice_tax_amount == 'N/A' or invoice_tax_amount == '':
-        #     invoice_tax_amount = 0
-        # else:
-        #     match = re.findall(r'\d+\.\d+|\d+', invoice_tax_amount)
-        #     print(match)
-        #     invoice_tax_amount = ""
-        #     for i in range(len(match)):
-        #         invoice_tax_amount += match[i]
+        # Update the progress
+        upload_progress.processed_files = index + 1
+        upload_progress.save()
 
-        # # convert amount part to decimal
-        # new_invoice = Invoice(
-        #     invoice_number=result_data['Invoice number'].iloc[0],
-        #     supplier_name=result_data['Supplier Name'].iloc[0],
-        #     supplier_address_street1=result_data['Supplier Address Street 1'].iloc[0],
-        #     supplier_address_street2=result_data['Supplier Address Street 2'].iloc[0],
-        #     supplier_city=result_data['Supplier City'].iloc[0],
-        #     supplier_state=result_data['Supplier State'].iloc[0],
-        #     supplier_zip=result_data['Supplier zip'].iloc[0],
-        #     supplier_country=result_data['Supplier Country'].iloc[0],
-        #     ship_to_street1=result_data['Ship To Street 1'].iloc[0],
-        #     ship_to_street2=result_data['Ship To Street 2'].iloc[0],
-        #     ship_to_city=result_data['Ship To City'].iloc[0],
-        #     ship_to_state=result_data['Ship To State'].iloc[0],
-        #     ship_to_zip=result_data['Zip'].iloc[0],
-        #     ship_to_country=result_data['Ship To Country'].iloc[0],
-        #     invoice_currency=result_data['Invoice currency'].iloc[0],
+    # Mark the upload as completed
+    upload_progress.completed = True
+    upload_progress.save()
 
-        #     invoice_amount_incl_tax=invoice_amount_incl_tax,
-        #     invoice_tax_amount=invoice_tax_amount,
-        #     purchase_order=result_data['Purchase Order'].iloc[0],
-        # )
-        # new_invoice.save()
-        #print the new invoice
-
-    # Return the task ID to the client
+    # Return the upload ID to the client
     return Response({'upload_id': upload_id})
 
 
@@ -138,3 +98,15 @@ def download_file(request, upload_id):
     # response['Content-Disposition'] = 'attachment; filename="invoices.xlsx"'
     # response.write(excel_file.getvalue())
     # return response
+
+@api_view(['GET'])
+def get_upload_progress(request):
+    # Retrieve the latest upload progress from the database
+    latest_progress = UploadProgress.objects.latest('id')
+
+    progress = {
+        'total_files': latest_progress.total_files,
+        'processed_files': latest_progress.processed_files,
+        'completed': latest_progress.completed
+    }
+    return Response(progress)

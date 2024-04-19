@@ -16,11 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from frontend.views import invoice_upload_view, upload_file, download_file
+from frontend.views import invoice_upload_view, upload_file, download_file, get_upload_progress
 
 urlpatterns = [
     path('', invoice_upload_view, name='invoice_upload'),
     path('admin/', admin.site.urls),
     path('api/upload/', upload_file, name='upload_file'),
     path('api/download/<str:upload_id>/', download_file, name='download_file'),
+    path('api/upload-progress/', get_upload_progress, name='get_upload_progress'),  # Remove <str:upload_id>/ from the URL pattern
 ]
