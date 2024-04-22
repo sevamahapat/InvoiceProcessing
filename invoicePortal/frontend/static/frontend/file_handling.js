@@ -42,8 +42,12 @@ function uploadFiles() {
     const fileInput = document.getElementById('file-upload');
     const loadingIndicator = document.getElementById('loadingIndicator');
     const uploadNotification = document.getElementById('uploadNotification');
+    const uploadButton = document.getElementById('uploadButton');
+    const downloadButton = document.getElementById('downloadButton');
+
     loadingIndicator.style.display = 'block';
     uploadNotification.innerHTML = '';
+    downloadButton.style.display = 'none'; // Hide the download button when uploading again
 
     if (fileInput.files && fileInput.files.length === 0) {
         alert('Please select one or more PDF files or a folder to upload.');
@@ -72,6 +76,10 @@ function uploadFiles() {
     }
     uploadNotification.innerHTML = message;
 
+    // Disable the file input and upload button
+    fileInput.disabled = true;
+    uploadButton.disabled = true;
+
     $.ajax({
         url: '/api/upload/',
         method: 'POST',
@@ -85,33 +93,38 @@ function uploadFiles() {
                     if (xhr.status === 200) {
                         const response = JSON.parse(xhr.responseText);
                         console.log('Upload success:', response);
-                        loadingIndicator.style.display = 'none';
                         if (response.task_ids && response.task_ids.length === 0) {
                             alert('No files uploaded.');
+                            // Enable the file input and upload button if no files were uploaded
+                            fileInput.disabled = false;
+                            uploadButton.disabled = false;
                         } else {
                             const uploadId = response.upload_id;
-                            const downloadButton = document.getElementById('downloadButton');
-                            downloadButton.style.display = 'block';
-                            downloadButton.onclick = () => { downloadFile(uploadId); };
+                            // Start checking progress immediately after sending the upload request
+                            checkUploadProgress(uploadId);
                         }
                     } else {
                         loadingIndicator.style.display = 'none';
                         console.error('Upload error:', xhr.statusText);
                         alert('Upload failed');
+                        // Enable the file input and upload button on upload failure
+                        fileInput.disabled = false;
+                        uploadButton.disabled = false;
                     }
                 }
             };
             return xhr;
         }
     });
-
-    // Start checking progress immediately after sending the upload request
-    checkUploadProgress();
 }
 
-function checkUploadProgress() {
+function checkUploadProgress(uploadId) {
     const processedInvoicesElement = document.getElementById('processedInvoices');
     const pendingTasksElement = document.getElementById('pendingTasks');
+    const downloadButton = document.getElementById('downloadButton');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const fileInput = document.getElementById('file-upload');
+    const uploadButton = document.getElementById('uploadButton');
     let progressInterval;
 
     function getUploadProgress() {
@@ -128,12 +141,22 @@ function checkUploadProgress() {
 
                 if (completed) {
                     clearInterval(progressInterval);
+                    downloadButton.style.display = 'block';
+                    downloadButton.onclick = () => { downloadFile(uploadId); };
+                    loadingIndicator.style.display = 'none'; // Hide the loading indicator when the download button shows up
+                    // Enable the file input and upload button after processing is completed
+                    fileInput.disabled = false;
+                    uploadButton.disabled = false;
                 }
             },
             error: function(xhr, status, error) {
                 console.error('Error:', error);
                 alert('Failed to get upload progress');
                 clearInterval(progressInterval);
+                loadingIndicator.style.display = 'none'; // Hide the loading indicator on progress check failure
+                // Enable the file input and upload button on progress check failure
+                fileInput.disabled = false;
+                uploadButton.disabled = false;
             }
         });
     }
@@ -142,7 +165,7 @@ function checkUploadProgress() {
     clearInterval(progressInterval);
 
     // Start a new progress interval
-    progressInterval = setInterval(getUploadProgress, 1000);
+    progressInterval = setInterval(getUploadProgress, 3000);
 }
 
 function downloadFile(upload_id) {

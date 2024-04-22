@@ -11,37 +11,40 @@ from rest_framework.response import Response
 import os
 import json
 from . import prompt_engineering_blackbox as prompt
-
 import openpyxl
+from threading import Lock
+
+# Create a lock for the Excel file
+excel_lock = Lock()
 
 # @shared_task
-def generate_invoice_info_gpt(task_id, upload_id):
+def generate_invoice_info_gpt(task_id, upload_id, upload_folder):
     """
     This function generates the invoice information using GPT API
-    Generates the parsed invoice information from passing the .pdf files to GPT API 
+    Generates the parsed invoice information from passing the .pdf files to GPT API
     """
     error_message = None
     file_name = f"{task_id}.pdf"  # Save the file with the task ID
-    # Construct the file path
-    file_path = Path(settings.MEDIA_ROOT) / file_name
+    # Construct the file path using the upload_folder
+    file_path = upload_folder / file_name
 
     # check if the file exists
     if not os.path.exists(file_path):
-        error_message = 'File ' + file_path + ' not found'
-    
+        error_message = 'File ' + str(file_path) + ' not found'
+
     # Pass the content to GPT API and get result
     result = None
     result = prompt.call(file_path)
 
     if result is None:
-        error_message = 'Error processing the file: ' + file_path
+        error_message = 'Error processing the file: ' + str(file_path)
 
     # print(result)
     # Find the position of the opening curly brace "{"
     brace_index = result.find("{")
     if brace_index == -1:
-        error_message = 'No JSON like info when processing the file: ' + file_path
-    
+        error_message = 'No JSON like info when processing the file: ' + str(file_path)
+
     # Extract the JSON-like string starting from the opening curly brace
     json_str = result[brace_index:]
 
@@ -50,75 +53,35 @@ def generate_invoice_info_gpt(task_id, upload_id):
 
     # Create a DataFrame from the dictionary
     result_df = pd.DataFrame([result_data])
-    # # for all columns name, remove the space
-    # result_df.columns = result_df.columns.str.rstrip()
-    # # if any column is missing, add it to the DataFrame
-    # if 'Invoice number' not in result_df:
-    #     result_df['Invoice number'] = ''
-    # if 'Supplier Name' not in result_df:
-    #     result_df['Supplier Name'] = ''
-    # if 'Supplier Address Street 1' not in result_df:
-    #     result_df['Supplier Address Street 1'] = ''
-    # if 'Supplier Address Street 2' not in result_df:
-    #     result_df['Supplier Address Street 2'] = ''
-    # if 'Supplier City' not in result_df:
-    #     result_df['Supplier City'] = ''
-    # if 'Supplier State' not in result_df:
-    #     result_df['Supplier State'] = ''
-    # if 'Supplier zip' not in result_df:
-    #     result_df['Supplier zip'] = ''
-    # if 'Supplier Country' not in result_df:
-    #     result_df['Supplier Country'] = ''
-    # if 'Ship To Street 1' not in result_df:
-    #     result_df['Ship To Street 1'] = ''
-    # if 'Ship To Street 2' not in result_df:
-    #     result_df['Ship To Street 2'] = ''
-    # if 'Ship To City' not in result_df:
-    #     result_df['Ship To City'] = ''
-    # if 'Ship To State' not in result_df:
-    #     result_df['Ship To State'] = ''
-    # if 'Zip' not in result_df:
-    #     result_df['Zip'] = ''
-    # if 'Ship To Country' not in result_df:
-    #     result_df['Ship To Country'] = ''
-    # if 'Invoice currency' not in result_df:
-    #     result_df['Invoice currency'] = ''
-    # if 'Invoice amount (Incl tax)' not in result_df:
-    #     result_df['Invoice amount (Incl tax)'] = 0
-    # if 'Invoice tax amount' not in result_df:
-    #     result_df['Invoice tax amount'] = 0
-    # if 'Purchase Order' not in result_df:
-    #     result_df['Purchase Order'] = ''
-    # return result_df
 
     # check if the output file 'result.xlsx' exists
-    file_path = Path(settings.MEDIA_ROOT) / f"result_{upload_id}.xlsx"
-    if not os.path.exists(file_path):
-        # Create a new Excel file
-        result_df.to_excel(file_path, index=False)
-    else:
-        # Load the existing Excel file
-        workbook = openpyxl.load_workbook(file_path)
+    file_path = upload_folder / f"result_{upload_id}.xlsx"
 
-        # Select the first worksheet
-        worksheet = workbook.active
-
-        # Determine the next available row after the last written row
-        next_row = worksheet.max_row + 1
-
-        if error_message is not None:
-            # Append the error message to the next available row
-            worksheet.cell(row=next_row, column=1, value=error_message)
-            return
+    # Acquire the lock before writing to the Excel file
+    with excel_lock:
+        if not os.path.exists(file_path):
+            # Create a new Excel file
+            result_df.to_excel(file_path, index=False)
         else:
-            # Append the data to the next available row
-            for index, row in result_df.iterrows():
-                for col_index, value in enumerate(row, start=1):
-                    worksheet.cell(row=next_row + index, column=col_index, value=value)
+            # Load the existing Excel file
+            workbook = openpyxl.load_workbook(file_path)
 
-        # Save the changes to the Excel file
-        workbook.save(file_path)
+            # Select the first worksheet
+            worksheet = workbook.active
 
-            
+            # Determine the next available row after the last written row
+            next_row = worksheet.max_row + 1
 
-    
+            if error_message is not None:
+                # Append the error message to the next available row
+                worksheet.cell(row=next_row, column=1, value=error_message)
+                workbook.save(file_path)
+                return
+            else:
+                # Append the data to the next available row
+                for index, row in result_df.iterrows():
+                    for col_index, value in enumerate(row, start=1):
+                        worksheet.cell(row=next_row + index, column=col_index, value=value)
+
+            # Save the changes to the Excel file
+            workbook.save(file_path)

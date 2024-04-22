@@ -3,3 +3,4 @@ uploaded_files
 .azure
 db.sqlite3
 .idea
+frontend/migrations

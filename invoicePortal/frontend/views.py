@@ -13,6 +13,7 @@ from .utils.invoice_generate import generate_invoice_info_gpt
 import uuid
 import pandas as pd
 from .models import Invoice, UploadProgress
+from threading import Thread
 
 
 def invoice_upload_view(request):
@@ -28,8 +29,6 @@ def upload_file(request):
         print("No files provided")
         return Response({'error': 'No files provided'}, status=400)
 
-    task_ids = []  # Store generated task IDs for each file
-
     upload_id = str(uuid.uuid4())  # Generate a unique upload ID
 
     # Create an instance of UploadProgress
@@ -38,31 +37,21 @@ def upload_file(request):
         total_files=len(files)
     )
 
-    for index, file in enumerate(files):
+    # Save the files to the local folder
+    upload_folder = Path(settings.MEDIA_ROOT) / upload_id
+    os.makedirs(upload_folder, exist_ok=True)
+
+    for file in files:
         task_id = str(uuid.uuid4())  # Generate a unique task ID for each file
-        task_ids.append(task_id)
         file_name = f"{task_id}.pdf"  # Save the file with the task ID
-
-        # Construct the file path
-        file_path = Path(settings.MEDIA_ROOT) / file_name
-
-        # Ensure the directory exists
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-        # Save the file to the local folder
+        file_path = upload_folder / file_name
         with open(file_path, 'wb') as f:
             for chunk in file.chunks():
                 f.write(chunk)
 
-        generate_invoice_info_gpt(task_id, upload_id)
-
-        # Update the progress
-        upload_progress.processed_files = index + 1
-        upload_progress.save()
-
-    # Mark the upload as completed
-    upload_progress.completed = True
-    upload_progress.save()
+    # Start a new thread to process the files
+    thread = Thread(target=process_files, args=(upload_id,))
+    thread.start()
 
     # Return the upload ID to the client
     return Response({'upload_id': upload_id})
@@ -71,8 +60,8 @@ def upload_file(request):
 @api_view(['GET'])
 def download_file(request, upload_id):
     file_name = f"result_{upload_id}.xlsx"
-    # file_name = f"{task_id}_processed.xlsx"
-    file_path = Path(settings.MEDIA_ROOT) / file_name
+    upload_folder = Path(settings.MEDIA_ROOT) / upload_id
+    file_path = upload_folder / file_name
 
     if not os.path.exists(file_path):
         return Response({'error': 'File not found or not ready'}, status=404)
@@ -82,22 +71,6 @@ def download_file(request, upload_id):
         response['Content-Disposition'] = f'attachment; filename="{file_name}"'
         return response
 
-    # # get all rows from the Invoice table and return them as xlsx file
-    # invoices = Invoice.objects.all()
-    # df = pd.DataFrame(list(invoices.values()))
-
-    # # Create a BytesIO object to store the Excel file
-    # from io import BytesIO
-    # excel_file = BytesIO()
-
-    # # Write the DataFrame to the BytesIO object as an Excel file
-    # df.to_excel(excel_file, index=False)
-
-    # # Create the HttpResponse object with the Excel file
-    # response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    # response['Content-Disposition'] = 'attachment; filename="invoices.xlsx"'
-    # response.write(excel_file.getvalue())
-    # return response
 
 @api_view(['GET'])
 def get_upload_progress(request):
@@ -110,3 +83,36 @@ def get_upload_progress(request):
         'completed': latest_progress.completed
     }
     return Response(progress)
+
+
+def process_files(upload_id):
+    upload_progress = UploadProgress.objects.get(upload_id=upload_id)
+    upload_folder = Path(settings.MEDIA_ROOT) / upload_id
+    files = os.listdir(upload_folder)
+    task_ids = [file.split('.')[0] for file in files if file.endswith('.pdf')]
+    print("Number of files to process:", len(task_ids))
+
+    batch_size = 5
+    num_batches = (len(task_ids) + batch_size - 1) // batch_size
+
+    def process_batch(batch_task_ids):
+        for task_id in batch_task_ids:
+            generate_invoice_info_gpt(task_id, upload_id, upload_folder)
+            upload_progress.processed_files += 1
+            upload_progress.save()
+            print(f"Processed file {upload_progress.processed_files}/{len(task_ids)}")
+
+    threads = []
+    for i in range(num_batches):
+        start_index = i * batch_size
+        end_index = min(start_index + batch_size, len(task_ids))
+        batch_task_ids = task_ids[start_index:end_index]
+        thread = Thread(target=process_batch, args=(batch_task_ids,))
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    upload_progress.completed = True
+    upload_progress.save()
